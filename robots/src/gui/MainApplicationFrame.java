@@ -33,14 +33,18 @@ public class MainApplicationFrame extends JFrame
     private static final String CONFIG_FILE_PATH =
             System.getProperty("user.home") + "/robot_app.properties";
 
+    private final RobotModel robotModel = new RobotModel();
+
     private LogWindow logWindow;
     private GameWindow gameWindow;
+    private RobotCoordinatesWindow robotCoordinatesWindow;
 
-    public MainApplicationFrame() {
+    public MainApplicationFrame()
+    {
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
-                screenSize.width  - inset * 2,
+                screenSize.width - inset * 2,
                 screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
@@ -48,18 +52,26 @@ public class MainApplicationFrame extends JFrame
         logWindow = createLogWindow();
         addWindow(logWindow);
 
-        gameWindow = new GameWindow();
+        gameWindow = new GameWindow(robotModel);
+        gameWindow.setLocation(320, 10);
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
+
+        robotCoordinatesWindow = new RobotCoordinatesWindow(robotModel);
+        robotCoordinatesWindow.setLocation(10, 520);
+        robotCoordinatesWindow.setSize(300, 180);
+        addWindow(robotCoordinatesWindow);
 
         restoreWindowSettings();
 
         setJMenuBar(generateMenuBar());
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter()
+        {
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(WindowEvent e)
+            {
                 exitApplication();
             }
         });
@@ -67,13 +79,13 @@ public class MainApplicationFrame extends JFrame
 
     protected LogWindow createLogWindow()
     {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(10, 10);
-        logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
+        LogWindow createdLogWindow = new LogWindow(Logger.getDefaultLogSource());
+        createdLogWindow.setLocation(10, 10);
+        createdLogWindow.setSize(300, 500);
+        setMinimumSize(createdLogWindow.getSize());
+        createdLogWindow.pack();
         Logger.debug("Протокол работает");
-        return logWindow;
+        return createdLogWindow;
     }
 
     protected void addWindow(JInternalFrame frame)
@@ -102,36 +114,28 @@ public class MainApplicationFrame extends JFrame
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
 
-        {
-            JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
-            systemLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(systemLookAndFeel);
-        }
+        JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
+        systemLookAndFeel.addActionListener((event) -> {
+            setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            invalidate();
+        });
+        lookAndFeelMenu.add(systemLookAndFeel);
 
-        {
-            JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_U);
-            crossplatformLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(crossplatformLookAndFeel);
-        }
+        JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_U);
+        crossplatformLookAndFeel.addActionListener((event) -> {
+            setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            invalidate();
+        });
+        lookAndFeelMenu.add(crossplatformLookAndFeel);
 
         JMenu testMenu = new JMenu("Тесты");
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
 
-        {
-            JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_L);
-            addLogMessageItem.addActionListener((event) -> {
-                Logger.debug("Новая строка");
-            });
-            testMenu.add(addLogMessageItem);
-        }
+        JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_L);
+        addLogMessageItem.addActionListener((event) -> Logger.debug("Новая строка"));
+        testMenu.add(addLogMessageItem);
 
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
@@ -177,6 +181,7 @@ public class MainApplicationFrame extends JFrame
 
         saveWindowProperties(properties, "log", logWindow);
         saveWindowProperties(properties, "game", gameWindow);
+        saveWindowProperties(properties, "coordinates", robotCoordinatesWindow);
 
         try (FileOutputStream outputStream = new FileOutputStream(CONFIG_FILE_PATH))
         {
@@ -198,6 +203,7 @@ public class MainApplicationFrame extends JFrame
 
             restoreWindowProperties(properties, "log", logWindow);
             restoreWindowProperties(properties, "game", gameWindow);
+            restoreWindowProperties(properties, "coordinates", robotCoordinatesWindow);
         }
         catch (IOException e)
         {
